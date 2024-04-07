@@ -5,7 +5,7 @@ module.exports = {
   mode: 'development',
   entry: './src/js/canvas.js',
   output: {
-    path: __dirname + '/dist/',
+    path: __dirname + '/docs/',
     filename: './js/canvas.bundle.js'
   },
   module: {

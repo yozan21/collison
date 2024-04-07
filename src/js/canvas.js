@@ -27,7 +27,7 @@ addEventListener('resize', () => {
 })
 
 // Objects
-class Object {
+class Circle {
   constructor(x, y, radius, color) {
     this.x = x
     this.y = y
@@ -49,7 +49,7 @@ class Object {
 }
 
 // Implementation
-let objects
+let circles;
 function init() {
   objects = []
 
