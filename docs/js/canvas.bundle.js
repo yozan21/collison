@@ -104,22 +104,26 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
-var canvas = document.querySelector('canvas');
-var c = canvas.getContext('2d');
+var canvas = document.querySelector("canvas");
+var c = canvas.getContext("2d");
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 var mouse = {
-  x: innerWidth / 2,
-  y: innerHeight / 2
+  x: 100,
+  y: 100,
+  dx: undefined,
+  dy: undefined
 };
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
+var colors = ["#2185C5", "#7ECEFD", "#FFF6E5", "#FF7F66"];
 
 // Event Listeners
-addEventListener('mousemove', function (event) {
+addEventListener("mousemove", function (event) {
   mouse.x = event.clientX;
   mouse.y = event.clientY;
+  mouse.dx = event.movementX;
+  mouse.dy = event.movementY;
 });
-addEventListener('resize', function () {
+addEventListener("resize", function () {
   canvas.width = innerWidth;
   canvas.height = innerHeight;
   init();
@@ -127,12 +131,15 @@ addEventListener('resize', function () {
 
 // Objects
 var Circle = /*#__PURE__*/function () {
-  function Circle(x, y, radius, color) {
+  function Circle(x, y, radius, color, mov) {
     _classCallCheck(this, Circle);
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
+    this.mov = mov;
+    this.dx = 0;
+    this.dy = 0;
   }
   return _createClass(Circle, [{
     key: "draw",
@@ -146,23 +153,51 @@ var Circle = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update() {
+      if (!this.mov) {
+        if (this.x + this.radius >= innerWidth || this.x - this.radius <= 0) {
+          this.dx = -this.dx;
+        }
+        if (this.y + this.radius >= innerHeight || this.y - this.radius <= 0) {
+          this.dy = -this.dy;
+        }
+        this.x += this.dx;
+        this.y += this.dy;
+      }
       this.draw();
     }
   }]);
 }(); // Implementation
 var circles;
+var circle1;
+var circle2;
 function init() {
-  objects = [];
+  circles = [];
+  circle1 = new Circle(innerWidth / 2, innerHeight / 2, 60, "black", false);
+  circle2 = new Circle(100, 100, 30, "red", true);
   for (var i = 0; i < 400; i++) {
     // objects.push()
   }
 }
-
+//Bounce
+var bounce = function bounce(m, c1, c2) {
+  c1.dx = m.dx * 0.99;
+  c1.dy = m.dy * 0.99;
+};
 // Animation Loop
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
-  c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y);
+  circle1.update();
+  circle2.update();
+  var distance = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.distance(circle1.x, circle1.y, circle2.x, circle2.y) - circle1.radius - circle2.radius <= 0;
+  circle2.x = mouse.x;
+  circle2.y = mouse.y;
+  if (distance) {
+    circle1.color = "red";
+    bounce(mouse, circle1, circle2);
+  } else {
+    circle1.color = "black";
+  }
   // objects.forEach(object => {
   //  object.update()
   // })
