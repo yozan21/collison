@@ -14,7 +14,7 @@ const mouse = {
 };
 
 const colors = ["#2185C5", "#7ECEFD", "#FFF6E5", "#FF7F66"];
-
+const friction = 0.99;
 // Event Listeners
 addEventListener("mousemove", (event) => {
   mouse.x = event.clientX;
@@ -53,10 +53,10 @@ class Circle {
   update() {
     if (!this.mov) {
       if (this.x + this.radius >= innerWidth || this.x - this.radius <= 0) {
-        this.dx = -this.dx;
+        this.dx = -this.dx * friction;
       }
       if (this.y + this.radius >= innerHeight || this.y - this.radius <= 0) {
-        this.dy = -this.dy;
+        this.dy = -this.dy * friction;
       }
       this.x += this.dx;
       this.y += this.dy;
@@ -79,8 +79,8 @@ function init() {
 }
 //Bounce
 const bounce = function (m, c1, c2) {
-  c1.dx = m.dx * 0.99;
-  c1.dy = m.dy * 0.99;
+  c1.dx = m.dx * friction;
+  c1.dy = m.dy * friction;
 };
 // Animation Loop
 function animate() {
