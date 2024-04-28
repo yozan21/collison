@@ -114,7 +114,7 @@ var mouse = {
   dx: undefined,
   dy: undefined
 };
-var colors = ["#2185C5", "#7ECEFD", "#FFF6E5", "#FF7F66"];
+var colors = ["#2185C5", "#7ECEFD", "#FF7F66"];
 var friction = 0.99;
 // Event Listeners
 addEventListener("mousemove", function (event) {
@@ -130,77 +130,110 @@ addEventListener("resize", function () {
 });
 
 // Objects
-var Circle = /*#__PURE__*/function () {
-  function Circle(x, y, radius, color, mov) {
-    _classCallCheck(this, Circle);
+var Particle = /*#__PURE__*/function () {
+  function Particle(x, y, radius, color) {
+    var mov = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+    _classCallCheck(this, Particle);
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
     this.mov = mov;
-    this.dx = 0;
-    this.dy = 0;
+    this.velocity = {
+      x: (Math.random() - 0.5) * 5,
+      y: (Math.random() - 0.5) * 5
+    };
+    this.mass = 1;
+    this.opacity = 0;
   }
-  return _createClass(Circle, [{
+  return _createClass(Particle, [{
     key: "draw",
     value: function draw() {
       c.beginPath();
       c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      c.save();
+      c.globalAlpha = this.opacity;
       c.fillStyle = this.color;
       c.fill();
+      c.restore();
+      c.strokeStyle = this.color;
+      c.stroke();
       c.closePath();
     }
   }, {
     key: "update",
-    value: function update() {
-      if (!this.mov) {
-        if (this.x + this.radius >= innerWidth || this.x - this.radius <= 0) {
-          this.dx = -this.dx * friction;
-        }
-        if (this.y + this.radius >= innerHeight || this.y - this.radius <= 0) {
-          this.dy = -this.dy * friction;
-        }
-        this.x += this.dx;
-        this.y += this.dy;
+    value: function update(particles) {
+      for (var i = 0; i < particles.length; i++) {
+        if (this === particles[i]) continue;
+        if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["distance"])(this.x, this.y, particles[i].x, particles[i].y) - this.radius * 2 < 0) Object(_utils__WEBPACK_IMPORTED_MODULE_0__["resolveCollision"])(this, particles[i]);
       }
+      if (this.x + this.radius >= innerWidth || this.x - this.radius <= 0) {
+        this.velocity.x = -this.velocity.x; //* friction;
+      }
+      if (this.y + this.radius >= innerHeight || this.y - this.radius <= 0) {
+        this.velocity.y = -this.velocity.y; //* friction;
+      }
+
+      //Mouse collision detection
+      if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["distance"])(mouse.x, mouse.y, this.x, this.y) < 120 && this.opacity < 0.2) this.opacity += 0.02;else if (this.opacity > 0) {
+        this.opacity -= 0.02;
+        this.opacity = Math.max(0, this.opacity);
+      }
+      this.x += this.velocity.x;
+      this.y += this.velocity.y;
       this.draw();
     }
   }]);
 }(); // Implementation
-var circles;
-var circle1;
-var circle2;
+var particles;
 function init() {
-  circles = [];
-  circle1 = new Circle(innerWidth / 2, innerHeight / 2, 60, "black", false);
-  circle2 = new Circle(100, 100, 30, "red", true);
-  for (var i = 0; i < 400; i++) {
-    // objects.push()
+  particles = [];
+  for (var i = 0; i < 100; i++) {
+    var radius = 15;
+    var x = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomIntFromRange"])(radius, canvas.width - radius);
+    var y = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomIntFromRange"])(radius, canvas.height - radius);
+    var color = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomColor"])(colors);
+    if (i !== 0) {
+      for (var j = 0; j < particles.length; j++) {
+        if (Object(_utils__WEBPACK_IMPORTED_MODULE_0__["distance"])(x, y, particles[j].x, particles[j].y) - radius * 2 < 0) {
+          x = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomIntFromRange"])(radius, canvas.width - radius);
+          y = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomIntFromRange"])(radius, canvas.height - radius);
+          j = -1;
+        }
+      }
+    }
+    particles.push(new Particle(x, y, radius, color));
   }
 }
 //Bounce
-var bounce = function bounce(m, c1, c2) {
-  c1.dx = m.dx * friction;
-  c1.dy = m.dy * friction;
-};
+// const bounce = function (m, c1, c2) {
+//   c1.dx = m.dx * friction;
+//   c1.dy = m.dy * friction;
+// };
 // Animation Loop
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
-  circle1.update();
-  circle2.update();
-  var distance = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.distance(circle1.x, circle1.y, circle2.x, circle2.y) - circle1.radius - circle2.radius <= 0;
-  circle2.x = mouse.x;
-  circle2.y = mouse.y;
-  if (distance) {
-    circle1.color = "red";
-    bounce(mouse, circle1, circle2);
-  } else {
-    circle1.color = "black";
-  }
-  // objects.forEach(object => {
-  //  object.update()
-  // })
+
+  // circle1.update();
+  // circle2.update();
+  // let distance =
+  //   utils.distance(circle1.x, circle1.y, circle2.x, circle2.y) -
+  //     circle1.radius -
+  //     circle2.radius <=
+  //   0;
+
+  // circle2.x = mouse.x;
+  // circle2.y = mouse.y;
+  // if (distance) {
+  //   circle1.color = "red";
+  //   bounce(mouse, circle1, circle2);
+  // } else {
+  //   circle1.color = "black";
+  // }
+  particles.forEach(function (particle) {
+    particle.update(particles);
+  });
 }
 init();
 animate();
@@ -225,10 +258,79 @@ function distance(x1, y1, x2, y2) {
   var yDist = y2 - y1;
   return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
 }
+/**
+ * Rotates coordinate system for velocities
+ *
+ * Takes velocities and alters them as if the coordinate system they're on was rotated
+ *
+ * @param  Object | velocity | The velocity of an individual particle
+ * @param  Float  | angle    | The angle of collision between two objects in radians
+ * @return Object | The altered x and y velocities after the coordinate system has been rotated
+ */
+
+function rotate(velocity, angle) {
+  var rotatedVelocities = {
+    x: velocity.x * Math.cos(angle) - velocity.y * Math.sin(angle),
+    y: velocity.x * Math.sin(angle) + velocity.y * Math.cos(angle)
+  };
+  return rotatedVelocities;
+}
+
+/**
+ * Swaps out two colliding particles' x and y velocities after running through
+ * an elastic collision reaction equation
+ *
+ * @param  Object | particle      | A particle object with x and y coordinates, plus velocity
+ * @param  Object | otherParticle | A particle object with x and y coordinates, plus velocity
+ * @return Null | Does not return a value
+ */
+
+function resolveCollision(particle, otherParticle) {
+  var xVelocityDiff = particle.velocity.x - otherParticle.velocity.x;
+  var yVelocityDiff = particle.velocity.y - otherParticle.velocity.y;
+  var xDist = otherParticle.x - particle.x;
+  var yDist = otherParticle.y - particle.y;
+
+  // Prevent accidental overlap of particles
+  if (xVelocityDiff * xDist + yVelocityDiff * yDist >= 0) {
+    // Grab angle between the two colliding particles
+    var angle = -Math.atan2(otherParticle.y - particle.y, otherParticle.x - particle.x);
+
+    // Store mass in var for better readability in collision equation
+    var m1 = particle.mass;
+    var m2 = otherParticle.mass;
+
+    // Velocity before equation
+    var u1 = rotate(particle.velocity, angle);
+    var u2 = rotate(otherParticle.velocity, angle);
+
+    // Velocity after 1d collision equation
+    var v1 = {
+      x: u1.x * (m1 - m2) / (m1 + m2) + u2.x * 2 * m2 / (m1 + m2),
+      y: u1.y
+    };
+    var v2 = {
+      x: u2.x * (m1 - m2) / (m1 + m2) + u1.x * 2 * m2 / (m1 + m2),
+      y: u2.y
+    };
+
+    // Final velocity after rotating axis back to original location
+    var vFinal1 = rotate(v1, -angle);
+    var vFinal2 = rotate(v2, -angle);
+
+    // Swap particle velocities for realistic bounce effect
+    particle.velocity.x = vFinal1.x;
+    particle.velocity.y = vFinal1.y;
+    otherParticle.velocity.x = vFinal2.x;
+    otherParticle.velocity.y = vFinal2.y;
+  }
+}
 module.exports = {
   randomIntFromRange: randomIntFromRange,
   randomColor: randomColor,
-  distance: distance
+  distance: distance,
+  rotate: rotate,
+  resolveCollision: resolveCollision
 };
 
 /***/ })
