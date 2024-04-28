@@ -2,4 +2,4 @@
 
 Welcome to this interactive website of colliding balls.
 
--Site-link: [live-site](https://yozan21.github.io/collison/)
+-Site-link: [Live-site](https://yozan21.github.io/collison/)
